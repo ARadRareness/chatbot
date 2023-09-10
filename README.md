@@ -8,6 +8,7 @@ A chat system which uses the [text-generation-webui](https://github.com/oobaboog
 * Document Retrieval
 * Text To Speech
 * Microphone Input
+* Chatter-mode, which allows the AI to talk without being prompted
 
 ## Requirements
 
