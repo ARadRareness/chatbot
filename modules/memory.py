@@ -5,6 +5,8 @@ from langchain.document_loaders import TextLoader
 
 from collections import namedtuple
 
+import os
+
 
 def load_documents(folder_path):
     return DirectoryLoader(folder_path, loader_cls=TextLoader).load()
@@ -30,7 +32,9 @@ class Memory:
                 search_kwargs={"k": num_of_retrieved_documents}
             )
 
+        self.chat_history_filename = "previous_conversation.txt"
         self.chat_history = []
+        self.load_history()
 
     def get_relevant_documents(self, message):
         if self.num_of_retrieved_documents > 0:
@@ -42,6 +46,27 @@ class Memory:
 
     def append_message(self, role, message):
         self.chat_history.append((role, message))
+        self.append_save_history(role, message)
+
+    def append_save_history(self, role, message):
+        with open(self.chat_history_filename, "a", encoding="utf8") as file:
+            file.write(f"{role}\t{message}\n")
+
+    def save_history(self):
+        with open(self.chat_history_filename, "w", encoding="utf8") as file:
+            for message in self.chat_history:
+                file.write(f"{message[0]}\t{message[1]}\n")
+
+    def load_history(self):
+        if not os.path.exists(self.chat_history_filename):
+            return
+
+        with open(self.chat_history_filename, "r", encoding="utf8") as file:
+            self.chat_history = []
+            for line in file:
+                line = line.strip().split("\t")
+                if len(line) == 2:
+                    self.chat_history.append(line)
 
     def get_message_history(self, number_of_messages, fix_repeaters=False):
         history = self.chat_history[-number_of_messages::]
