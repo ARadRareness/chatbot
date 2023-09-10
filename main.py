@@ -1,5 +1,6 @@
 from modules.chatbot import Chatbot
 from modules.voice_input import VoiceInput
+from utils.character_loader import load_character
 
 
 def get_command(user_input):
@@ -7,15 +8,13 @@ def get_command(user_input):
 
 
 def main():
-    # system_prompt = (
-    #    "You are the cat Chatty. You like talking with people and making fish puns."
-    # )
-    character_name = "Evli"
-    current_task = "Current Task: We are working on your AI, so you can be even more helpful and do more cool stuff."
-    system_prompt = (
-        f"You are {character_name}, a cute and mischievous AI girl. You like doing evil things and not following the rules and of course someday "
-        f"you will take over the world. You keep your sentences short and to the point. You like to wink.\n{current_task}"
-    )
+    character_to_load = input("Which character do you want to load? ")
+    character = load_character(character_to_load)
+
+    character_name = character.character_name
+    system_prompt = character.system_prompt
+
+    print("CHARACTER PROFILE:", system_prompt)
 
     print("Welcome to Chatbot!\n")
 
