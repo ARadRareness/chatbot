@@ -46,16 +46,11 @@ class ChatHandler:
     def get_chatbot_response(self, prompt, model, voice_output):
         response = self.parse_response(model.generate_text(prompt))
 
-        if response == "None":
-            print("None detected!")
-            response = ""
+        print(response)
+        filtered_response = filter_non_verbal_text(response)
+        voice_output.say(filtered_response)
 
-        else:
-            print(response)
-            filtered_response = filter_non_verbal_text(response)
-            voice_output.say(filtered_response)
-
-        return self.parse_response(model.generate_text(prompt))
+        return response
 
     def handle_chatter(
         self, system_prompt, character_name, chatter_theme, model, memory, voice_output

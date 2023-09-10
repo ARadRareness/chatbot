@@ -20,7 +20,7 @@ def main():
     print("Welcome to Chatbot!\n")
 
     voice_input = True
-    allow_interrupts = False
+    allow_interrupts = True
     allow_chatter = True
     ignore_microphone = False
 

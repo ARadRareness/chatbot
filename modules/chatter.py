@@ -16,7 +16,7 @@ class Chatter:
         current_time = time.time()
 
         if not self.next_chatter_time:
-            self.next_chatter_time = current_time + random.randint(10, 30)
+            self.next_chatter_time = current_time + random.randint(20, 60)
 
         if current_time >= self.next_chatter_time:
             return True
