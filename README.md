@@ -1,15 +1,13 @@
 # Chatbot
 
-A Clever Helpful Assistant To Benefit Others Technology.
-
 A chat system which uses the [text-generation-webui](https://github.com/oobabooga/text-generation-webui/) API to provide entertainment and/or value.
 
 ## Features
 
-* Chat history (Not saying it's good yet though)
+* Chat History (Not saying it's good yet though)
 * Document Retrieval
 * Text To Speech
-* Microphone input
+* Microphone Input
 
 ## Requirements
 

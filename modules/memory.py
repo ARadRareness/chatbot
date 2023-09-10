@@ -43,5 +43,27 @@ class Memory:
     def append_message(self, role, message):
         self.chat_history.append((role, message))
 
-    def get_message_history(self, number_of_messages):
-        return self.chat_history[-number_of_messages::]
+    def get_message_history(self, number_of_messages, fix_repeaters=False):
+        history = self.chat_history[-number_of_messages::]
+
+        if fix_repeaters and len(history) >= 3:
+            bot_replies = [
+                msg[1] for msg in reversed(history) if msg[0] == "ASSISTANT"
+            ][:3]
+
+            if len(bot_replies) == 3:
+                prefix = ""
+                for i in range(min(map(len, bot_replies))):
+                    if all(msg[i] == bot_replies[0][i] for msg in bot_replies):
+                        prefix += bot_replies[0][i]
+                    else:
+                        break
+
+                history = [
+                    (msg[0], msg[1][len(prefix) :])
+                    if msg[1].startswith(prefix)
+                    else msg
+                    for msg in history
+                ]
+
+        return history

@@ -31,11 +31,14 @@ class Model:
             "stopping_strings": [],
         }
 
+        with open("_input.txt", "w", encoding="utf8") as file:
+            file.write(prompt)
+
         url = f"http://{self.host_url}:{self.host_port}/api/v1/generate"
 
         response = requests.post(url, json=request)
 
-        with open("_test.json", "w") as file:
+        with open("_output.json", "w") as file:
             json.dump(response.json(), file)
 
         if response.status_code == 200:

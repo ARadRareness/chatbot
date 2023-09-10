@@ -21,7 +21,6 @@ class VoiceInputThread(threading.Thread):
         self.language = language
 
         self.model = WhisperModel("large-v2", device="cuda", compute_type="float16")
-        self.model = WhisperModel("medium.en", device="cuda", compute_type="float16")
 
         self.daemon = True
         self.start()
@@ -40,8 +39,11 @@ class VoiceInputThread(threading.Thread):
             fname = os.path.join(
                 "wavs", datetime.datetime.now().strftime("input_%Y%m%d_%H%M%S.wav")
             )
-            if not os.path.exists("wavs"):
-                os.mkdir("wavs")
+            try:
+                if not os.path.exists("wavs"):
+                    os.mkdir("wavs")
+            except:
+                None
             self.save_audio_to_wav(audio_data, fname)
             text = self.generate_transcript(fname, initial_whisper_prompt).strip()
 
@@ -49,33 +51,6 @@ class VoiceInputThread(threading.Thread):
                 os.remove(fname)
 
         return text
-
-    def get_input_devices(self):
-        p = pyaudio.PyAudio()
-        info = p.get_host_api_info_by_index(0)
-        num_devices = info.get("deviceCount")
-        for i in range(num_devices):
-            if (
-                p.get_device_info_by_host_api_device_index(0, i).get("maxInputChannels")
-                > 0
-            ):
-                print(
-                    "Input Device id ",
-                    i,
-                    " - ",
-                    p.get_device_info_by_host_api_device_index(0, i).get("name"),
-                )
-
-    def generate_transcript(self, fname, initial_whisper_prompt):
-        segments, info = self.model.transcribe(
-            fname,
-            beam_size=5,
-            initial_prompt=initial_whisper_prompt,
-            language=self.language,
-            vad_filter=True
-            # word_timestamps=True,
-        )
-        return " ".join([x.text for x in segments])
 
     def capture_audio(self):
         chunk = 960  # number of audio samples per chunk
@@ -155,6 +130,33 @@ class VoiceInputThread(threading.Thread):
                 (nchannels, sampwidth, framerate, nframes, "NONE", "NONE")
             )
             wav_file.writeframes(audio_data)
+
+    def generate_transcript(self, fname, initial_whisper_prompt):
+        segments, _info = self.model.transcribe(
+            fname,
+            beam_size=5,
+            initial_prompt=initial_whisper_prompt,
+            language=self.language,
+            vad_filter=True
+            # word_timestamps=True,
+        )
+        return " ".join([x.text for x in segments])
+
+    def get_input_devices(self):
+        p = pyaudio.PyAudio()
+        info = p.get_host_api_info_by_index(0)
+        num_devices = info.get("deviceCount")
+        for i in range(num_devices):
+            if (
+                p.get_device_info_by_host_api_device_index(0, i).get("maxInputChannels")
+                > 0
+            ):
+                print(
+                    "Input Device id ",
+                    i,
+                    " - ",
+                    p.get_device_info_by_host_api_device_index(0, i).get("name"),
+                )
 
 
 class VoiceInput:

@@ -13,11 +13,12 @@ from utils.datatypes import ThreadSafeBoolean
 
 
 class VoiceOutputThread(threading.Thread):
-    def __init__(self, message_queue, interrupt_flag, voice_id=None):
+    def __init__(self, message_queue, interrupt_flag, is_playing_flag, voice_id=None):
         threading.Thread.__init__(self)
 
         self.message_queue = message_queue
         self.interrupt_flag = interrupt_flag
+        self.is_playing_flag = is_playing_flag
         self.voice_id = voice_id
 
         self.daemon = True
@@ -36,8 +37,10 @@ class VoiceOutputThread(threading.Thread):
         while t_running:
             if self.message_queue.empty():
                 self.interrupt_flag.set(False)
+                self.is_playing_flag.set(False)
                 time.sleep(0.1)
             else:
+                self.is_playing_flag.set(True)
                 command, message = self.message_queue.get()
                 if command == "exit":
                     t_running = False
@@ -84,10 +87,11 @@ class VoiceOutput:
     def __init__(self, voice_id=None):
         self.message_queue = queue.Queue()
         self.interrupt_flag = ThreadSafeBoolean()
+        self.is_playing_flag = ThreadSafeBoolean()
         self.voice_id = voice_id
 
         self.voice_output_thread = VoiceOutputThread(
-            self.message_queue, self.interrupt_flag, self.voice_id
+            self.message_queue, self.interrupt_flag, self.is_playing_flag, self.voice_id
         )
 
     def __del__(self):
@@ -99,3 +103,6 @@ class VoiceOutput:
 
     def interrupt(self):
         self.interrupt_flag.set(True)
+
+    def is_playing(self):
+        return self.is_playing_flag.get()
