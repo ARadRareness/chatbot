@@ -5,6 +5,7 @@ from langchain.document_loaders import TextLoader
 
 from collections import namedtuple
 
+import datetime
 import os
 
 
@@ -20,9 +21,19 @@ def load_vector_store(documents):
     return FAISS.from_documents(documents, instructor_embeddings)
 
 
+CHAT_HISTORY_FILENAME = "previous_conversations.txt"
+
+
 class Memory:
-    def __init__(self, folder_path, num_of_retrieved_documents=1):
+    def __init__(
+        self, folder_path, character_folder_path, num_of_retrieved_documents=1
+    ):
         self.folder_path = folder_path
+        self.character_folder_path = character_folder_path
+        self.character_chat_history_file_path = os.path.join(
+            self.character_folder_path, CHAT_HISTORY_FILENAME
+        )
+
         self.num_of_retrieved_documents = num_of_retrieved_documents
 
         if num_of_retrieved_documents > 0:
@@ -32,8 +43,9 @@ class Memory:
                 search_kwargs={"k": num_of_retrieved_documents}
             )
 
-        self.chat_history_filename = "previous_conversation.txt"
         self.chat_history = []
+
+        self.log_session_start()
         self.load_history()
 
     def get_relevant_documents(self, message):
@@ -49,19 +61,27 @@ class Memory:
         self.append_save_history(role, message)
 
     def append_save_history(self, role, message):
-        with open(self.chat_history_filename, "a", encoding="utf8") as file:
+        with open(self.character_chat_history_file_path, "a", encoding="utf8") as file:
             file.write(f"{role}\t{message}\n")
 
+    def log_session_start(self):
+        now = datetime.datetime.now()
+
+        formatted_date = now.strftime("SESSION %Y-%m-%d %H:%M")
+
+        with open(self.character_chat_history_file_path, "a", encoding="utf8") as file:
+            file.write(f"{formatted_date}\n")
+
     def save_history(self):
-        with open(self.chat_history_filename, "w", encoding="utf8") as file:
+        with open(self.character_chat_history_file_path, "w", encoding="utf8") as file:
             for message in self.chat_history:
                 file.write(f"{message[0]}\t{message[1]}\n")
 
     def load_history(self):
-        if not os.path.exists(self.chat_history_filename):
+        if not os.path.exists(self.character_chat_history_file_path):
             return
 
-        with open(self.chat_history_filename, "r", encoding="utf8") as file:
+        with open(self.character_chat_history_file_path, "r", encoding="utf8") as file:
             self.chat_history = []
             for line in file:
                 line = line.strip().split("\t")
@@ -84,11 +104,11 @@ class Memory:
                     else:
                         break
 
-                history = [
-                    (msg[0], msg[1][len(prefix) :])
-                    if msg[1].startswith(prefix)
-                    else msg
-                    for msg in history
-                ]
-
+                if len(prefix) >= 3 and any(char in prefix for char in " ,.!?"):
+                    history = [
+                        (msg[0], msg[1][len(prefix) :])
+                        if msg[1].startswith(prefix)
+                        else msg
+                        for msg in history
+                    ]
         return history

@@ -13,13 +13,13 @@ from utils.datatypes import ThreadSafeBoolean
 
 
 class VoiceOutputThread(threading.Thread):
-    def __init__(self, message_queue, interrupt_flag, is_playing_flag, voice_id=None):
+    def __init__(self, message_queue, interrupt_flag, is_playing_flag, voice_name=None):
         threading.Thread.__init__(self)
 
         self.message_queue = message_queue
         self.interrupt_flag = interrupt_flag
         self.is_playing_flag = is_playing_flag
-        self.voice_id = voice_id
+        self.voice_name = voice_name
 
         self.daemon = True
         self.start()
@@ -27,11 +27,13 @@ class VoiceOutputThread(threading.Thread):
     def run(self):
         self.engine = pyttsx3.init()
 
-        if self.voice_id:
-            self.engine.setProperty(
-                "voice",
-                self.voice_id,
-            )
+        if self.voice_name:
+            for voice in self.engine.getProperty("voices"):
+                if self.voice_name.lower() in voice.name.lower():
+                    self.engine.setProperty(
+                        "voice",
+                        voice.id,
+                    )
 
         t_running = True
         while t_running:
@@ -84,14 +86,17 @@ class VoiceOutputThread(threading.Thread):
 
 
 class VoiceOutput:
-    def __init__(self, voice_id=None):
+    def __init__(self, voice_name=None):
         self.message_queue = queue.Queue()
         self.interrupt_flag = ThreadSafeBoolean()
         self.is_playing_flag = ThreadSafeBoolean()
-        self.voice_id = voice_id
+        self.voice_name = voice_name
 
         self.voice_output_thread = VoiceOutputThread(
-            self.message_queue, self.interrupt_flag, self.is_playing_flag, self.voice_id
+            self.message_queue,
+            self.interrupt_flag,
+            self.is_playing_flag,
+            self.voice_name,
         )
 
     def __del__(self):

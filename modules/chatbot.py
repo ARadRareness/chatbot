@@ -11,7 +11,8 @@ from modules.voice_output import VoiceOutput
 
 
 def filter_non_verbal_text(message):
-    message = message.replace("*wink*", " wink ")
+    message = message.replace("*wink*", " wink! ")
+    message = message.replace("*heart*", " heart!")
     # Remove text enclosed in "**"
     message = re.sub(r"\*[^*]*\*", "", message)
 
@@ -21,11 +22,11 @@ def filter_non_verbal_text(message):
     return message
 
 
-def initialize_memory():
+def initialize_memory(character_folder_path):
     folder_path = "memories"
     number_of_retrieved_documents = 1
 
-    return Memory(folder_path, number_of_retrieved_documents)
+    return Memory(folder_path, character_folder_path, number_of_retrieved_documents)
 
 
 class ChatHandler:
@@ -44,7 +45,8 @@ class ChatHandler:
         return "\n".join(parsed_response)
 
     def get_chatbot_response(self, prompt, model, voice_output):
-        response = self.parse_response(model.generate_text(prompt))
+        generated_text = model.generate_text(prompt).replace("*winks*", "*wink*")
+        response = self.parse_response(generated_text)
 
         print(response)
         filtered_response = filter_non_verbal_text(response)
@@ -72,18 +74,15 @@ class ChatHandler:
 
 
 class ChatbotThread(threading.Thread):
-    def __init__(
-        self, message_queue, system_prompt, character_name, allow_chatter=False
-    ):
+    def __init__(self, message_queue, character, allow_chatter=False):
         threading.Thread.__init__(self)
 
         self.message_queue = message_queue
-        self.system_prompt = system_prompt
-        self.character_name = character_name
+        self.character = character
 
         self.chatter = None
 
-        self.chatter = Chatter(allow_chatter, character_name)
+        self.chatter = Chatter(allow_chatter, character.character_name)
 
         self.chat_handler = ChatHandler()
 
@@ -96,11 +95,10 @@ class ChatbotThread(threading.Thread):
         self.model = Model("192.168.1.101", "5000")
 
         print("Loading memory...")
-        self.memory = initialize_memory()
+        self.memory = initialize_memory(self.character.folder_path)
 
         print("Loading voice output...")
-        voice_id = None
-        self.voice_output = VoiceOutput(voice_id)
+        self.voice_output = VoiceOutput(self.character.voice_name)
 
     def run(self):
         t_running = True
@@ -131,8 +129,8 @@ class ChatbotThread(threading.Thread):
 
     def respond_to_chatter(self, chatter_theme):
         response = self.chat_handler.handle_chatter(
-            self.system_prompt,
-            self.character_name,
+            self.character.system_prompt,
+            self.character.character_name,
             chatter_theme,
             self.model,
             self.memory,
@@ -146,8 +144,8 @@ class ChatbotThread(threading.Thread):
         self.memory.append_message("USER", user_input)
 
         response = self.chat_handler.handle_response(
-            self.system_prompt,
-            self.character_name,
+            self.character.system_prompt,
+            self.character.character_name,
             self.model,
             self.memory,
             self.voice_output,
@@ -158,11 +156,11 @@ class ChatbotThread(threading.Thread):
 
 
 class Chatbot:
-    def __init__(self, system_prompt, character_name, allow_chatter=False):
+    def __init__(self, character, allow_chatter=False):
         self.message_queue = queue.Queue()
 
         self.chatbot_thread = ChatbotThread(
-            self.message_queue, system_prompt, character_name, allow_chatter
+            self.message_queue, character, allow_chatter
         )
 
     def __del__(self):

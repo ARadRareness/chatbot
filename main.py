@@ -11,25 +11,22 @@ def main():
     character_to_load = input("Which character do you want to load? ")
     character = load_character(character_to_load)
 
-    character_name = character.character_name
-    system_prompt = character.system_prompt
+    print("CHARACTER PROFILE:", character.system_prompt)
 
-    print("CHARACTER PROFILE:", system_prompt)
+    print("\nWelcome to Chatbot!\n")
 
-    print("Welcome to Chatbot!\n")
-
-    voice_input = True
+    use_voice_input = True
     allow_interrupts = True
     allow_chatter = True
     ignore_microphone = False
 
     print("Loading voice input...")
     voice_input = VoiceInput()
-    chatbot = Chatbot(system_prompt, character_name, allow_chatter)
+    chatbot = Chatbot(character, allow_chatter)
 
     print("Ready")
     while True:
-        if voice_input:
+        if use_voice_input:
             user_input = voice_input.get_input()
             print("Chat:", user_input)
         else:
