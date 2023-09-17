@@ -104,7 +104,7 @@ class Memory:
                     else:
                         break
 
-                if len(prefix) >= 3 and any(char in prefix for char in " ,.!?"):
+                if len(prefix) >= 3 and prefix[-1] in " ,.!?":
                     history = [
                         (msg[0], msg[1][len(prefix) :])
                         if msg[1].startswith(prefix)

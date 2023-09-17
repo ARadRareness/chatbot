@@ -80,8 +80,6 @@ class ChatbotThread(threading.Thread):
         self.message_queue = message_queue
         self.character = character
 
-        self.chatter = None
-
         self.chatter = Chatter(allow_chatter, character.character_name)
 
         self.chat_handler = ChatHandler()

@@ -20,28 +20,28 @@ def load_character(folder_name):
         profile = {}
 
     character_name = profile.get("character_name", "NO NAME")
-    current_task = profile.get("current_task", "NO TASK").replace(
+    current_topic = profile.get("current_topic", "NO TOPIC").replace(
         "{character_name}", character_name
     )
     system_prompt = (
         profile.get("system_prompt", "NO SYSTEM PROMPT")
         .replace("{character_name}", character_name)
-        .replace("{current_task}", current_task)
+        .replace("{current_topic}", current_topic)
     )
 
     voice_name = profile.get("voice_name", None)
 
     return Character(
-        character_name, current_task, system_prompt, folder_path, voice_name
+        character_name, current_topic, system_prompt, folder_path, voice_name
     )
 
 
 class Character:
     def __init__(
-        self, character_name, current_task, system_prompt, folder_path, voice_name
+        self, character_name, current_topic, system_prompt, folder_path, voice_name
     ):
         self.character_name = character_name
-        self.current_task = current_task
+        self.current_topic = current_topic
         self.system_prompt = system_prompt
         self.folder_path = folder_path
         self.voice_name = voice_name

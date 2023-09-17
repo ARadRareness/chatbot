@@ -9,16 +9,14 @@ class PromptFormat:
     <<MEMORY>>
     <<CHAT_HISTORY>>
     Today is <<DAYOFWEEK>>, the clock is <<HOURANDMINUTES>> and the date is <<DATE>>.
-    ASSISTANT:
-"""
+    ASSISTANT:"""
         self.chatter_format = """
     SYSTEM: <<SYSTEM_PROMPT>>
     Given the context of the memory and chat history respond appropriately. The reply should be <<CHATTER_THEME>>.
     <<MEMORY>>
     <<CHAT_HISTORY>>
     Today is <<DAYOFWEEK>>, the clock is <<HOURANDMINUTES>> and the date is <<DATE>>.
-    ASSISTANT:
-"""
+    ASSISTANT:"""
 
     def get_response(self, system_prompt, character_name, memory):
         # Use the last 20 messages from the conversation
@@ -114,8 +112,7 @@ The current date is <<DATE>>.
 Given the context of your memory and chat history, write <<CHARACTER>>'s next chat reply. Write a single reply only. Stay in character at all times.
 When the user asks a question, answer it.
 ### Assistant
-<<CHARACTER>>:
-"""
+<<CHARACTER>>:"""
         self.chatter_format = """
 ### System Prompt
 <<SYSTEM_PROMPT>>
@@ -138,5 +135,4 @@ The current date is <<DATE>>.
 Given the context of your memory and chat history, write <<CHARACTER>>'s next chat reply. Write a single reply only. Stay in character at all times.
 The reply should be <<CHATTER_THEME>>.
 ### Assistant
-<<CHARACTER>>:
-"""
+<<CHARACTER>>:"""
