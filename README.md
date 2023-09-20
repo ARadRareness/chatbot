@@ -12,7 +12,12 @@ A chat system which uses the [text-generation-webui](https://github.com/oobaboog
 
 ## Requirements
 
-Lots of stuff... aka TODO.
+Install the requirements using
+```bash
+
+pip install -r requirements.txt
+
+```
 
 ## Installing
 ```bash
