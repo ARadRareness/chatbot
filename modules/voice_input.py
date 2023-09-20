@@ -1,15 +1,30 @@
-from faster_whisper import WhisperModel  # pip install faster-whisper
-import pyaudio  # pip install pyaudio
-import webrtcvad  # pip install webrtcvad
-import numpy as np  # pip install numpy
+from faster_whisper import WhisperModel
+import numpy as np
+import pyaudio
+import webrtcvad
 
 import datetime
-import threading
-import queue
-import wave
 import os
+import queue
+import threading
+import wave
 
 from utils.datatypes import ThreadSafeBoolean
+
+
+class VoiceInput:
+    def __init__(self):
+        self.message_queue = queue.Queue()
+        self.quit_flag = ThreadSafeBoolean(False)
+
+        self.voice_input_thread = VoiceInputThread(self.message_queue, self.quit_flag)
+
+    def __del__(self):
+        self.quit_flag.set(True)
+        self.voice_input_thread.join()
+
+    def get_input(self):
+        return self.message_queue.get()
 
 
 class VoiceInputThread(threading.Thread):
@@ -157,18 +172,3 @@ class VoiceInputThread(threading.Thread):
                     " - ",
                     p.get_device_info_by_host_api_device_index(0, i).get("name"),
                 )
-
-
-class VoiceInput:
-    def __init__(self):
-        self.message_queue = queue.Queue()
-        self.quit_flag = ThreadSafeBoolean(False)
-
-        self.voice_input_thread = VoiceInputThread(self.message_queue, self.quit_flag)
-
-    def __del__(self):
-        self.quit_flag.set(True)
-        self.voice_input_thread.join()
-
-    def get_input(self):
-        return self.message_queue.get()

@@ -1,25 +1,12 @@
-import re
 import time
 import threading
 import queue
 
-from utils.model_api import Model
-from modules.chatter import Chatter
+from modules.chatbot.chatter import Chatter
+from modules.chatbot.chat_handler import ChatHandler
 from modules.memory import Memory
-from modules.prompt_manager import PhindFormat
 from modules.voice_output import VoiceOutput
-
-
-def filter_non_verbal_text(message):
-    message = message.replace("*wink*", " wink! ")
-    message = message.replace("*heart*", " heart!")
-    # Remove text enclosed in "**"
-    message = re.sub(r"\*[^*]*\*", "", message)
-
-    # Remove emojis
-    message = re.sub(r"[^\x00-\x7F]+", "", message)
-
-    return message
+from utils.model_api import Model
 
 
 def initialize_memory(character_folder_path):
@@ -29,48 +16,23 @@ def initialize_memory(character_folder_path):
     return Memory(folder_path, character_folder_path, number_of_retrieved_documents)
 
 
-class ChatHandler:
-    def __init__(self):
-        self.prompt_formatter = self.prompt_formatter = PhindFormat()
+class Chatbot:
+    def __init__(self, character, allow_chatter=False):
+        self.message_queue = queue.Queue()
 
-    def parse_response(self, response):
-        parsed_response = []
-
-        for sentence in response.split("\n"):
-            if sentence.startswith("USER:") or sentence.startswith("ASSISTANT:"):
-                break
-
-            parsed_response.append(sentence)
-
-        return "\n".join(parsed_response)
-
-    def get_chatbot_response(self, prompt, model, voice_output):
-        generated_text = model.generate_text(prompt).replace("*winks*", "*wink*")
-        response = self.parse_response(generated_text)
-
-        print(response)
-        filtered_response = filter_non_verbal_text(response)
-        voice_output.say(filtered_response)
-
-        return response
-
-    def handle_chatter(
-        self, system_prompt, character_name, chatter_theme, model, memory, voice_output
-    ):
-        prompt = self.prompt_formatter.get_chatter(
-            system_prompt, chatter_theme, character_name, memory
+        self.chatbot_thread = ChatbotThread(
+            self.message_queue, character, allow_chatter
         )
 
-        return self.get_chatbot_response(prompt, model, voice_output)
+    def __del__(self):
+        self.message_queue.put(("exit", ""))
+        self.chatbot_thread.join()
 
-    def handle_response(
-        self, system_prompt, character_name, model, memory, voice_output
-    ):
-        prompt = self.prompt_formatter.get_response(
-            system_prompt, character_name, memory
-        )
+    def input(self, message):
+        self.message_queue.put(("input", message))
 
-        return self.get_chatbot_response(prompt, model, voice_output)
+    def interrupt(self):
+        self.message_queue.put(("interrupt", ""))
 
 
 class ChatbotThread(threading.Thread):
@@ -151,22 +113,3 @@ class ChatbotThread(threading.Thread):
 
         if response:
             self.memory.append_message("ASSISTANT", response)
-
-
-class Chatbot:
-    def __init__(self, character, allow_chatter=False):
-        self.message_queue = queue.Queue()
-
-        self.chatbot_thread = ChatbotThread(
-            self.message_queue, character, allow_chatter
-        )
-
-    def __del__(self):
-        self.message_queue.put(("exit", ""))
-        self.chatbot_thread.join()
-
-    def input(self, message):
-        self.message_queue.put(("input", message))
-
-    def interrupt(self):
-        self.message_queue.put(("interrupt", ""))

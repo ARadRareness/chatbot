@@ -1,15 +1,42 @@
-import pyaudio  # pip install pyaudio
-import pyttsx3  # pip install pyttsx3
-
-import queue
-import time
-import threading
-import wave
-import os
+import pyaudio
+import pyttsx3
 
 from datetime import datetime
+import os
+import threading
+import time
+import queue
+import wave
 
 from utils.datatypes import ThreadSafeBoolean
+
+
+class VoiceOutput:
+    def __init__(self, voice_name=None):
+        self.message_queue = queue.Queue()
+        self.interrupt_flag = ThreadSafeBoolean()
+        self.is_playing_flag = ThreadSafeBoolean()
+        self.voice_name = voice_name
+
+        self.voice_output_thread = VoiceOutputThread(
+            self.message_queue,
+            self.interrupt_flag,
+            self.is_playing_flag,
+            self.voice_name,
+        )
+
+    def __del__(self):
+        self.message_queue.put(("exit", ""))
+        self.voice_output_thread.join()
+
+    def say(self, message):
+        self.message_queue.put(("say", message))
+
+    def interrupt(self):
+        self.interrupt_flag.set(True)
+
+    def is_playing(self):
+        return self.is_playing_flag.get()
 
 
 class VoiceOutputThread(threading.Thread):
@@ -61,12 +88,17 @@ class VoiceOutputThread(threading.Thread):
     def play_file(self, filename):
         p = pyaudio.PyAudio()
 
+        # for i in range(p.get_device_count()):
+        #    dev = p.get_device_info_by_index(i)
+        #    print((i, dev["name"], dev["maxOutputChannels"]))
+
         with wave.open(filename, "rb") as wf:
             stream = p.open(
                 format=p.get_format_from_width(wf.getsampwidth()),
                 channels=wf.getnchannels(),
                 rate=wf.getframerate(),
                 output=True,
+                output_device_index=5,
             )
 
             # Read and play the audio data in chunks
@@ -83,31 +115,3 @@ class VoiceOutputThread(threading.Thread):
             stream.close()
 
         p.terminate()
-
-
-class VoiceOutput:
-    def __init__(self, voice_name=None):
-        self.message_queue = queue.Queue()
-        self.interrupt_flag = ThreadSafeBoolean()
-        self.is_playing_flag = ThreadSafeBoolean()
-        self.voice_name = voice_name
-
-        self.voice_output_thread = VoiceOutputThread(
-            self.message_queue,
-            self.interrupt_flag,
-            self.is_playing_flag,
-            self.voice_name,
-        )
-
-    def __del__(self):
-        self.message_queue.put(("exit", ""))
-        self.voice_output_thread.join()
-
-    def say(self, message):
-        self.message_queue.put(("say", message))
-
-    def interrupt(self):
-        self.interrupt_flag.set(True)
-
-    def is_playing(self):
-        return self.is_playing_flag.get()

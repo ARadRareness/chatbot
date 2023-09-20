@@ -1,5 +1,7 @@
-import os
 import yaml
+
+import os
+
 
 CHARACTERS_FOLDER = "characters"
 PROFILE_FILENAME = "character.yaml"

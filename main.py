@@ -1,4 +1,4 @@
-from modules.chatbot import Chatbot
+from modules.chatbot.chatbot import Chatbot
 from modules.voice_input import VoiceInput
 from utils.character_loader import load_character
 

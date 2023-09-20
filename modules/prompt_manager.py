@@ -110,9 +110,10 @@ The current date is <<DATE>>.
 
 <<CHAT_HISTORY>>
 Given the context of your memory and chat history, write <<CHARACTER>>'s next chat reply. Write a single reply only. Stay in character at all times.
-When the user asks a question, answer it.
+When the user asks a question, answer it. Take a deep breath and answer to the best of your ability.
 ### Assistant
 <<CHARACTER>>:"""
+
         self.chatter_format = """
 ### System Prompt
 <<SYSTEM_PROMPT>>

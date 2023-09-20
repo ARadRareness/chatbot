@@ -1,10 +1,9 @@
 from langchain.document_loaders import DirectoryLoader
+from langchain.document_loaders import TextLoader
 from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.vectorstores import FAISS
-from langchain.document_loaders import TextLoader
 
 from collections import namedtuple
-
 import datetime
 import os
 
@@ -21,13 +20,12 @@ def load_vector_store(documents):
     return FAISS.from_documents(documents, instructor_embeddings)
 
 
-CHAT_HISTORY_FILENAME = "previous_conversations.txt"
-
-
 class Memory:
     def __init__(
         self, folder_path, character_folder_path, num_of_retrieved_documents=1
     ):
+        CHAT_HISTORY_FILENAME = "previous_conversations.txt"
+
         self.folder_path = folder_path
         self.character_folder_path = character_folder_path
         self.character_chat_history_file_path = os.path.join(
